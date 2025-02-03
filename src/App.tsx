@@ -1,70 +1,43 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, ChevronRight, ChevronLeft, Info, RotateCcw } from 'lucide-react';
-import { DocumentChunking } from './components/DocumentChunking';
-import { Embedding } from './components/Embedding';
-import { Retrieval } from './components/Retrieval';
-import { Generation } from './components/Generation';
-import { ChatInterface } from './components/ChatInterface';
-import { ProgressSteps } from './components/ProgressSteps';
+import { Brain } from 'lucide-react';
+import AdminLayout from './components/admin/AdminLayout';
+import ModuleManager from './components/admin/ModuleManager';
+import StepEditor from './components/admin/StepEditor';
+import AIComponentConfig from './components/admin/AIComponentConfig';
+import TemplateManager from './components/admin/TemplateManager';
+import Settings from './components/admin/Settings';
 
-function App() {
+// Import existing components if they exist, otherwise use placeholders
+const ChatInterface = () => (
+  <div className="bg-white rounded-lg shadow-lg p-6">
+    <h2 className="text-xl font-bold mb-4">Chat Interface</h2>
+    <p>Chat interface placeholder</p>
+  </div>
+);
+
+const ProgressSteps = ({ currentStep, onStepComplete, onComplete }: any) => (
+  <div className="bg-white rounded-lg shadow-lg p-6">
+    <h2 className="text-xl font-bold mb-4">Progress Steps</h2>
+    <p>Progress steps placeholder</p>
+  </div>
+);
+
+const RAGDemo = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showChat, setShowChat] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
   const [showPopup, setShowPopup] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
 
   const handleBrainClick = () => {
-    setShowPopup(true);
-    setTimeout(() => {
-      setShowPopup(false);
+    setClickCount(prev => prev + 1);
+    if (clickCount === 2) {
       setShowChat(true);
-      setShowIntro(false);
-    }, 1500);
-  };
-
-  const handleNext = () => {
-    if (showIntro) {
-      setShowIntro(false);
-      return;
-    }
-    if (currentStep < 3) {
-      setCurrentStep(prev => prev + 1);
-    } else {
-      setShowChat(true);
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 3000);
     }
   };
-
-  const handleBack = () => {
-    if (showChat) {
-      setShowChat(false);
-      setCurrentStep(3);
-    } else if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    } else if (!showIntro) {
-      setShowIntro(true);
-    }
-  };
-
-  const handleStartOver = () => {
-    setShowChat(false);
-    setCurrentStep(0);
-    setShowIntro(true);
-  };
-
-  const handleStepClick = (step: number) => {
-    setCurrentStep(step);
-    setShowChat(false);
-  };
-
-  const steps = [
-    { component: DocumentChunking },
-    { component: Embedding },
-    { component: Retrieval },
-    { component: Generation }
-  ];
-
-  const CurrentComponent = steps[currentStep].component;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700">
@@ -104,129 +77,65 @@ function App() {
             </div>
             <p className="text-white/80 text-sm md:text-base max-w-2xl mx-auto">
               {showChat 
-                ? "Try out the chatbot! Ask about the weather, the fox, or serenity."
-                : "Let's explore how modern AI chatbots understand and answer your questions using RAG (Retrieval-Augmented Generation)."}
+                ? "Now you're using a RAG-powered AI chatbot! Try asking questions about any documents you upload."
+                : "Learn how Retrieval Augmented Generation (RAG) enhances AI chatbots with real-time document knowledge."}
             </p>
           </div>
 
-          {/* Progress Steps */}
-          {!showChat && !showIntro && <ProgressSteps currentStep={currentStep} onStepClick={handleStepClick} />}
-
-          {/* Navigation buttons */}
-          <div className="flex justify-between mb-4">
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: showChat || (!showIntro && currentStep > 0) ? 1 : 0 }}
-              onClick={handleBack}
-              className="flex items-center gap-2 bg-white/20 text-white px-3 py-2 rounded-lg font-semibold backdrop-blur-sm hover:bg-white/30 transition-colors disabled:opacity-0"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Back</span>
-            </motion.button>
-
+          {/* Main Content */}
+          <div className="max-w-4xl mx-auto">
             {showChat ? (
-              <motion.button
-                onClick={handleStartOver}
-                className="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>Start Over</span>
-              </motion.button>
+              <ChatInterface />
             ) : (
-              <motion.button
-                onClick={handleNext}
-                className="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
-              >
-                <span>
-                  {showIntro ? "Let's Begin" : currentStep === 3 ? 'Try the Chatbot' : 'Next'}
-                </span>
-                <ChevronRight className="w-4 h-4" />
-              </motion.button>
+              <ProgressSteps 
+                currentStep={currentStep} 
+                onStepComplete={setCurrentStep} 
+                onComplete={() => setShowChat(true)} 
+              />
             )}
           </div>
-
-          {/* Main Content */}
-          <div className="min-h-[80vh]">
-            <AnimatePresence mode="wait">
-              {showIntro ? (
-                <motion.div
-                  key="intro"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20"
-                >
-                  <div className="max-w-2xl mx-auto space-y-6 text-white">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 bg-blue-500/20 rounded-lg">
-                        <Info className="w-6 h-6" />
-                      </div>
-                      <h2 className="text-xl font-semibold">Welcome to Your RAG AI Learning Journey!</h2>
-                    </div>
-                    
-                    <p>
-                      Ever wondered how AI chatbots like ChatGPT actually work? How do they know what to say and where do they get their information from? You're in the right place to find out!
-                    </p>
-
-                    <div className="bg-white/10 p-4 rounded-lg">
-                      <h3 className="font-medium mb-2">What You'll Learn:</h3>
-                      <ul className="space-y-2">
-                        <li className="flex items-center gap-2">
-                          <span className="text-blue-300">•</span>
-                          How chatbots break down and understand information
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <span className="text-blue-300">•</span>
-                          The way AI "remembers" and finds relevant information
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <span className="text-blue-300">•</span>
-                          How it puts everything together to answer your questions
-                        </li>
-                      </ul>
-                    </div>
-
-                    <p>
-                      We'll walk through each step with simple examples and clear explanations. By the end, you'll understand the basics of how modern AI chatbots work, and you'll even get to try one out yourself!
-                    </p>
-
-                    <p className="text-sm text-white/70">
-                      Ready to start? Click "Let's Begin" to dive in!
-                    </p>
-                  </div>
-                </motion.div>
-              ) : !showChat ? (
-                <motion.div
-                  key="step"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="h-full"
-                >
-                  <CurrentComponent isActive={true} />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="chat"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="h-full"
-                >
-                  <ChatInterface />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
-
-        {/* Footer */}
-        <footer className="text-center py-4 text-white/60 text-sm">
-          Brought to you by <a href="https://www.x.com/jakerains" target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-400 transition-colors">GenAI Jake</a>
-        </footer>
       </div>
     </div>
   );
-}
+};
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="/admin/modules" replace />} />
+          <Route path="modules" element={<ModuleManager />} />
+          <Route 
+            path="modules/:moduleId/steps" 
+            element={
+              <StepEditor 
+                steps={[]} 
+                onStepsChange={(steps) => console.log('Steps updated:', steps)} 
+              />
+            } 
+          />
+          <Route 
+            path="components" 
+            element={
+              <AIComponentConfig 
+                components={[]} 
+                onComponentsChange={(components) => console.log('Components updated:', components)} 
+              />
+            } 
+          />
+        </Route>
+
+        {/* RAG Demo Route */}
+        <Route path="/rag-demo" element={<RAGDemo />} />
+
+        {/* Default Route */}
+        <Route path="/" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;

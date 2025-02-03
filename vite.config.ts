@@ -1,15 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   plugins: [
     react({
       babel: {
-        plugins: [
-          ['babel-plugin-transform-import-meta', { module: 'ES6' }]
-        ]
-      }
-    })
+        plugins: ['babel-plugin-transform-import-meta'],
+      },
+    }),
   ],
   optimizeDeps: {
     include: ['lucide-react']
@@ -17,10 +15,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3001/',
+        target: 'http://localhost:3001',
         changeOrigin: true,
-        secure: false
-      }
-    }
-  }
-}));
+      },
+    },
+  },
+});
